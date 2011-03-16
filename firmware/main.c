@@ -21,11 +21,7 @@
 // two devices:
 uint8_t mymac[6] = {0x54,0x55,0x58,0x10,0x00,0x24};
 uint8_t myip[4] = {10,253,1,100};
-
-// how did I get the mac addr? Translate the first 3 numbers into ascii is: TUX
-
-#define BUFFER_SIZE 250
-static uint8_t buf[BUFFER_SIZE+1];
+uint8_t buf[BUFFER_SIZE+1];
 
 int main(void){
         uint16_t plen;
