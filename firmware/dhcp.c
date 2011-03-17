@@ -1,5 +1,15 @@
+
+#include <avr/io.h>
+#include <string.h>
+
 #include "main.h"
 #include "net.h"
+
+#include "rnet.h"
+#include "eth.h"
+#include "ip.h"
+#include "udp.h"
+#include "dhcp.h"
 
 /* dhcp replies we are currently waiting on */
 #define DHCP_STATE_INIT            1
@@ -30,34 +40,36 @@ void dhcp_init(void) {
 void dhcp_get_lease(void) {
     dhcp_t *packet;
     uint32_t val;
-    uint8_t i=0;
 
-    packet = (struct dhcp_t*)buf[ETH_HEADER_LEN +
-                                 IP_HEADER_LEN +
-                                 UDP_HEADER_LEN];
+    packet = (struct dhcp_t*)&buf[ETH_HEADER_LEN +
+                                  IP_HEADER_LEN +
+                                  UDP_HEADER_LEN];
 
-    make_eth(&buf, "\xff\xff\xff\xff\xff\xff")
+    eth_pack_hdr(packet, ETH_ADDR_BCAST, mymac, ETH_TYPE_IP);
 
-    packet->boot.op = BOOTP_OP_BOOTREQUEST;
+    /* now need an IP header */
+    ip_pack_hdr(packet + ETH_HDR_LEN, IP_TOS_DEFAULT, 0, 0, IP_DF,
+                IP_TTL_DEFAULT, IP_PROTO_UDP, IP_ADDR_ANY,
+                IP_ADDR_BROADCAST);
+
+    /* now need a UDP header */
+
+
+    packet->bootp.op = BOOTP_OP_BOOTREQUEST;
     packet->bootp.htype = BOOTP_HTYPE_ETHERNET;
     packet->bootp.hlen = BOOTP_HLEN_ETHERNET;
 
-    packet->bootp.ciaddr = htonl(myip);
+    memcpy(&packet->bootp.ciaddr, &myip, 4);
     packet->bootp.yiaddr = htonl(0);
     packet->bootp.siaddr = htonl(0);
     packet->bootp.giaddr = htonl(0);
-    while(i < 6) {
-        packet->bootp.chaddr[i] = mymac[i];
-        i++;
-    }
-    packet->bootp.xid = (uint32_t*)&mymac;
+    memcpy(packet->bootp.chaddr, mymac, 6);
+    packet->bootp.xid = *(uint32_t*)&mymac;
     packet->bootp.flags = htons(1);
     packet->cookie = 0x63438263;
 
     val = DHCP_MSG_DHCPDISCOVER;
     dhcp_set_option(packet->options, DHCP_OPT_DHCPMSGTYPE, 1, &val);
-
-
 }
 
 /*

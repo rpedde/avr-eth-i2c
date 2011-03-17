@@ -9,8 +9,10 @@
  * Title: Microchip ENC28J60 Ethernet Interface Driver
  * Chip type           : ATMEGA88 with ENC28J60
  *********************************************/
+#include <stdio.h>
 #include <avr/io.h>
 #include "avr_compat.h"
+#include "main.h"
 #include "net.h"
 #include "enc28j60.h"
 

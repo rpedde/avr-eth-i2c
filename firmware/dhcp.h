@@ -45,7 +45,7 @@ typedef struct bootp_t {
     uint8_t chaddr[16];     ///< Client Hardware Address
     uint8_t sname[64];      ///< Server Host Name
     uint8_t file[128];      ///< Boot file name (null-term string)
-} bootp_t __attribute__((packed));
+} bootp_t;
 
 #define BOOTP_HEADER_LEN       236   ///< length of BOOTP header not including options
 
@@ -58,8 +58,8 @@ typedef struct bootp_t {
 typedef struct dhcp_t {
     bootp_t bootp;
     uint32_t cookie;
-    uint8_t options[]
-} dhcp_t __attribute__((packed));
+    uint8_t options[];
+} dhcp_t;
 
 #define DHCP_HEADER_LEN        240
 

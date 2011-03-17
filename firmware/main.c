@@ -15,6 +15,7 @@
 #include "timeout.h"
 #include "avr_compat.h"
 #include "net.h"
+#include "main.h"
 
 // please modify the following two lines. mac and ip have to be unique
 // in your local area network. You can not have the same numbers in
