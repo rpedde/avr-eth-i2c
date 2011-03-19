@@ -39,6 +39,7 @@ void dhcp_init(void) {
  */
 void dhcp_get_lease(void) {
     dhcp_t *packet;
+    uint8_t *end_of_packet;
     uint32_t val;
 
     packet = (struct dhcp_t*)&buf[ETH_HEADER_LEN +
@@ -48,12 +49,15 @@ void dhcp_get_lease(void) {
     eth_pack_hdr(packet, ETH_ADDR_BCAST, mymac, ETH_TYPE_IP);
 
     /* now need an IP header */
-    ip_pack_hdr(packet + ETH_HDR_LEN, IP_TOS_DEFAULT, 0, 0, IP_DF,
+    ip_pack_hdr(packet + ETH_HEADER_LEN, IP_TOS_DEFAULT, 0, 0, IP_DF,
                 IP_TTL_DEFAULT, IP_PROTO_UDP, IP_ADDR_ANY,
                 IP_ADDR_BROADCAST);
 
     /* now need a UDP header */
-
+    udp_pack_hdr(packet + ETH_HEADER_LEN + IP_HEADER_LEN,
+                 DHCP_UDP_CLIENT_PORT,
+                 DHCP_UDP_SERVER_PORT,
+                 0);
 
     packet->bootp.op = BOOTP_OP_BOOTREQUEST;
     packet->bootp.htype = BOOTP_HTYPE_ETHERNET;
@@ -69,7 +73,9 @@ void dhcp_get_lease(void) {
     packet->cookie = 0x63438263;
 
     val = DHCP_MSG_DHCPDISCOVER;
-    dhcp_set_option(packet->options, DHCP_OPT_DHCPMSGTYPE, 1, &val);
+    end_of_packet = dhcp_set_option(packet->options, DHCP_OPT_DHCPMSGTYPE, 1, &val);
+
+    udp_send_packet(buf, end_of_packet - (uint8_t*)&buf);
 }
 
 /*
