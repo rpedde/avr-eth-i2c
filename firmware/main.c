@@ -15,6 +15,7 @@
 #include "timeout.h"
 #include "avr_compat.h"
 #include "net.h"
+#include "dhcp.h"
 #include "main.h"
 
 // please modify the following two lines. mac and ip have to be unique
@@ -134,8 +135,11 @@ int main(void){
                 if(buf[IP_PROTO_P]==IP_PROTO_ICMP_V && buf[ICMP_TYPE_P]==ICMP_TYPE_ECHOREQUEST_V){
                         // a ping packet, let's send pong
                         make_echo_reply_from_request(buf,plen);
+                        delay_ms(20);
+                        dhcp_get_lease();
                         continue;
                 }
+
         }
         return (0);
 }

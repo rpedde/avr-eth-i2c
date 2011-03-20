@@ -19,5 +19,12 @@ extern uint32_t htonl(uint32_t);
 extern int rnet_init(eth_addr_t *hwaddr, ip_addr_t ipaddr, ip_addr_t netmask);
 extern int rnet_set_gw(ip_addr_t ipaddr);
 
+/* functions to calculate IP, UDP, and TCP checksums */
+#define CHECKSUM_TYPE_IP    0
+#define CHECKSUM_TYPE_UDP   1
+#define CHECKSUM_TYPE_TCP   2
+
+extern uint16_t internet_checksum(uint8_t *buf, uint16_t len, uint8_t type);
+
 
 #endif /* _RNET_H_ */

@@ -17,6 +17,7 @@ typedef struct udp_header_t {
         udp_pack_p->uh_sport = htons(sport);                    \
         udp_pack_p->uh_dport = htons(dport);                    \
         udp_pack_p->uh_ulen = htons(ulen);                      \
+        udp_pack_p->uh_sum = 0;                                 \
     } while (0)
 
 

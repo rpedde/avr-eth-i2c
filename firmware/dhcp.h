@@ -94,5 +94,6 @@ typedef struct dhcp_t {
 
 extern void dhcp_init(void);
 extern void dhcp_send_request(void);
+extern void dhcp_get_lease(void);
 
 #endif /* _DHCP_H_ */

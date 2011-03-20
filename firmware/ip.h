@@ -89,6 +89,7 @@ typedef struct ip_header_t {
         ip_pack_p->ip_id = htons(id); ip_pack_p->ip_off = htons(off);   \
         ip_pack_p->ip_ttl = ttl; ip_pack_p->ip_p = p;                   \
         ip_pack_p->ip_src = src; ip_pack_p->ip_dst = dst;               \
+        ip_pack_p->ip_sum = 0;                                          \
     } while (0)
 
 #endif /* _IP_H_ */

@@ -46,15 +46,15 @@ void dhcp_get_lease(void) {
                                   IP_HEADER_LEN +
                                   UDP_HEADER_LEN];
 
-    eth_pack_hdr(packet, ETH_ADDR_BCAST, mymac, ETH_TYPE_IP);
+    eth_pack_hdr((eth_header_t*)&buf, ETH_ADDR_BCAST, mymac, ETH_TYPE_IP);
 
     /* now need an IP header */
-    ip_pack_hdr(packet + ETH_HEADER_LEN, IP_TOS_DEFAULT, 0, 0, IP_DF,
+    ip_pack_hdr(&buf[ETH_HEADER_LEN], IP_TOS_DEFAULT, 0, 0, IP_DF,
                 IP_TTL_DEFAULT, IP_PROTO_UDP, IP_ADDR_ANY,
                 IP_ADDR_BROADCAST);
 
     /* now need a UDP header */
-    udp_pack_hdr(packet + ETH_HEADER_LEN + IP_HEADER_LEN,
+    udp_pack_hdr(&buf[ETH_HEADER_LEN + IP_HEADER_LEN],
                  DHCP_UDP_CLIENT_PORT,
                  DHCP_UDP_SERVER_PORT,
                  0);
