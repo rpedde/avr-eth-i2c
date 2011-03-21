@@ -16,8 +16,8 @@ void udp_send_packet(uint8_t *buffer, uint8_t payload_length) {
     /* set up the lengths */
     uint16_t checksum;
 
-    ((udp_header_t*)(buffer + ETH_HEADER_LEN + IP_HEADER_LEN))->uh_ulen = payload_length + UDP_HEADER_LEN;
-    ((ip_header_t*)(buffer + ETH_HEADER_LEN))->ip_len = payload_length + UDP_HEADER_LEN + IP_HEADER_LEN;
+    ((udp_header_t*)(buffer + ETH_HEADER_LEN + IP_HEADER_LEN))->uh_ulen = htons(payload_length + UDP_HEADER_LEN);
+    ((ip_header_t*)(buffer + ETH_HEADER_LEN))->ip_len = htons(payload_length + UDP_HEADER_LEN + IP_HEADER_LEN);
 
     /* calculate UDP checksum */
     checksum = internet_checksum((uint8_t*)&((ip_header_t*)(buffer + ETH_HEADER_LEN)) -> ip_src,
@@ -27,9 +27,11 @@ void udp_send_packet(uint8_t *buffer, uint8_t payload_length) {
         htons(checksum);
 
     /* do the IP checksum */
-    checksum = internet_checksum((uint8_t*)&((ip_header_t*)(buffer + ETH_HEADER_LEN)) -> ip_p,
+    checksum = internet_checksum((uint8_t*)&buffer[ETH_HEADER_LEN],
                                  IP_HEADER_LEN,
                                  CHECKSUM_TYPE_IP);
+
+    ((ip_header_t*)(buffer + ETH_HEADER_LEN))->ip_sum = htons(checksum);
 
     enc28j60PacketSend(ETH_HEADER_LEN + IP_HEADER_LEN +
                        UDP_HEADER_LEN + payload_length,

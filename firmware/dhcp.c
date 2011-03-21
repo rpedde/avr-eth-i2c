@@ -1,5 +1,5 @@
 
-#include <avr/io.h>
+#include <inttypes.h>
 #include <string.h>
 
 #include "main.h"
@@ -40,13 +40,13 @@ void dhcp_init(void) {
 void dhcp_get_lease(void) {
     dhcp_t *packet;
     uint8_t *end_of_packet;
-    uint32_t val;
+    uint8_t val;
 
     packet = (struct dhcp_t*)&buf[ETH_HEADER_LEN +
                                   IP_HEADER_LEN +
                                   UDP_HEADER_LEN];
 
-    eth_pack_hdr((eth_header_t*)&buf, ETH_ADDR_BCAST, mymac, ETH_TYPE_IP);
+    eth_pack_hdr((eth_header_t*)&buf, ETH_ADDR_BCAST, (eth_addr_t*)&mymac, ETH_TYPE_IP);
 
     /* now need an IP header */
     ip_pack_hdr(&buf[ETH_HEADER_LEN], IP_TOS_DEFAULT, 0, 0, IP_DF,
@@ -63,19 +63,21 @@ void dhcp_get_lease(void) {
     packet->bootp.htype = BOOTP_HTYPE_ETHERNET;
     packet->bootp.hlen = BOOTP_HLEN_ETHERNET;
 
-    memcpy(&packet->bootp.ciaddr, &myip, 4);
+    //    memcpy(&packet->bootp.ciaddr, &myip, 4);
+    packet->bootp.ciaddr = htonl(0);
     packet->bootp.yiaddr = htonl(0);
     packet->bootp.siaddr = htonl(0);
     packet->bootp.giaddr = htonl(0);
     memcpy(packet->bootp.chaddr, mymac, 6);
     packet->bootp.xid = *(uint32_t*)&mymac;
     packet->bootp.flags = htons(1);
-    packet->cookie = 0x63438263;
+    packet->cookie = 0x63538263;
 
     val = DHCP_MSG_DHCPDISCOVER;
     end_of_packet = dhcp_set_option(packet->options, DHCP_OPT_DHCPMSGTYPE, 1, &val);
+    end_of_packet = dhcp_set_option(end_of_packet, DHCP_OPT_END, 0, NULL);
 
-    udp_send_packet(buf, end_of_packet - (uint8_t*)&buf);
+    udp_send_packet(buf, end_of_packet - (uint8_t *)packet - 1);
 }
 
 /*
