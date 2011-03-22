@@ -12,7 +12,7 @@
 
 #include "enc28j60.h"
 
-void udp_send_packet(uint8_t *buffer, uint8_t payload_length) {
+void udp_send_packet(uint8_t *buffer, uint16_t payload_length) {
     /* set up the lengths */
     uint16_t checksum;
 

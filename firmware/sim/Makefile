@@ -1,4 +1,4 @@
-CFLAGS = -I/opt/local/include -I.. -O0 -g
+CFLAGS = -I/opt/local/include -I.. -O0 -g -DDEBUG=1
 LDFLAGS = -L/opt/local/lib -lpcap -ldnet
 
 OBJECTS = main.o compat.o ../rnet.o ../dhcp.o ../udp.o ../eth.o enc-compat.o pq.o 

@@ -25,16 +25,10 @@ int main(void){
 
     while(1) {
         // get the next new packet:
-        plen = enc28j60PacketReceive(BUFFER_SIZE, buf);
-
-        /*plen will ne unequal to zero if there is a valid
-         * packet (without crc error) */
-        if(plen==0) {
-            continue;
+        if((plen = enc28j60PacketReceive(BUFFER_SIZE, buf))) {
+            if(dhcp_process_packet(buf, plen))
+                continue;
         }
-        // arp is broadcast if unknown but a host may also
-        // verify the mac address by sending it to
-        // a unicast address.
     }
     return (0);
 }

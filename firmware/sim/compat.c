@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <strings.h>
 #include <unistd.h>
+#include <stdarg.h>
 
 void delay_ms(unsigned int ms) {
     usleep(ms * 1000);
@@ -70,4 +71,7 @@ void dprintf(char *fmt, ...) {
     va_start(args, fmt);
     vasprintf(&stringp, fmt, args);
     va_end(args);
+
+    fprintf(stderr, "%s\n", stringp);
+    free(stringp);
 }

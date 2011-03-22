@@ -21,7 +21,7 @@ typedef struct udp_header_t {
     } while (0)
 
 
-extern void udp_send_packet(uint8_t *buffer, uint8_t payload_length);
+extern void udp_send_packet(uint8_t *buffer, uint16_t payload_length);
 
 #endif /* _UDP_H_ */
 
