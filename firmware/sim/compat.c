@@ -62,3 +62,12 @@ void hex_dump(void *data, int size) {
         printf("[%4.4s]   %-50.50s  %s\n", addrstr, hexstr, charstr);
     }
 }
+
+void dprintf(char *fmt, ...) {
+    va_list args;
+    char *stringp;
+
+    va_start(args, fmt);
+    vasprintf(&stringp, fmt, args);
+    va_end(args);
+}

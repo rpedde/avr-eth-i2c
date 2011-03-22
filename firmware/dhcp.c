@@ -12,32 +12,85 @@
 #include "dhcp.h"
 
 /* dhcp replies we are currently waiting on */
-#define DHCP_STATE_INIT            1
-#define DHCP_STATE_OFFER           2
-#define DHCP_STATE_ACK             3
-#define DHCP_STATE_ACQUIRED        4
+#define DHCP_STATE_DISCOVER        1 /* sent discover, waiting for offer */
+#define DHCP_STATE_ACK             2 /* got offer, waiting for ack */
+#define DHCP_STATE_RENEW           3 /* sent renew, waiting for ack */
+#define DHCP_STATE_ACQUIRED        4 /* steady state */
+#define DHCP_STATE_EXPIRED         5 /* gave up */
 
-static uint8_t dhcp_min_to_refresh;
-static uint8_t dhcp_sec_to_refresh;
+static uint16_t dhcp_sec_to_expire;
+static uint16_t dhcp_sec_to_refresh;
 static uint8_t dhcp_state;
+static uint8_t dhcp_error_count;
 
 /* Forwards */
 uint8_t *dhcp_set_option(uint8_t* options, uint8_t optcode,
                          uint8_t optlen, void* optvalptr);
 
+void dhcp_send_packet(uint8_t msg_type);
 
 /*
  * Initialize the dhcp subsystem
  */
 void dhcp_init(void) {
-    dhcp_state = DHCP_STATE_INIT;
+    /* we don't have a lease yet */
+    memset(myip, 0, sizeof(myip));
+    dhcp_error_count = 0;
+    dhcp_get_lease();
+}
+
+/*
+ * This potentially processes a packet as a DHCP packet.
+ */
+int dhcp_process_packet(uint8_t *buffer, uint16_t len) {
+    dhcp_t *header;
+
+    if((((eth_header_t*)buffer)->eth_type == htons(ETH_TYPE_IP)) &&
+       (((ip_header_t*)&buffer[ETH_HEADER_LEN])->ip_p == IP_PROTO_UDP) &&
+       (((udp_header_t*)&buffer[ETH_HEADER_LEN + IP_HEADER_LEN])->uh_dport == htons(DHCP_UDP_CLIENT_PORT)))  {
+        dprintf("Received DHCP packet\n");
+
+        /* looks like it might be a dhcp packet for us! */
+        header = (dhcp_t*)&buffer[ETH_HEADER_LEN + IP_HEADER_LEN +
+                                  UDP_HEADER_LEN];
+        if(header->bootp.xid == *(uint32_t*)&mymac) {
+            /* yup, this was my transaction */
+            if(dhcp_state == DHCP_STATE_DISCOVER) {
+                memcpy(myip, &header->bootp.yiaddr, sizeof(myip));
+                dprintf("Got offer for %d.%d.%d.%d\n", myip[0], myip[1],
+                        myip[2], myip[3]);
+            }
+        }
+    }
+
+    return 0;
+}
+
+/*
+ * Renew the DHCP lease.  Send request packet,
+ * and wait for ACK or NAK
+ */
+void dhcp_renew_lease(void) {
+    dhcp_state = DHCP_STATE_RENEW;
+    dhcp_sec_to_refresh = 10;
+    dhcp_send_packet(DHCP_MSG_DHCPREQUEST);
+}
+
+/*
+ * get a full DHCP lease (from cold boot)
+ */
+void dhcp_get_lease(void) {
+    dhcp_state = DHCP_STATE_DISCOVER;
+    dhcp_sec_to_refresh = 10;
+    dhcp_sec_to_expire = 10;
+    dhcp_send_packet(DHCP_MSG_DHCPDISCOVER);
 }
 
 /*
  * Get a full DHCP lease.  Send request packet,
  * then wait for an offer
  */
-void dhcp_get_lease(void) {
+void dhcp_send_packet(uint8_t msg_type) {
     dhcp_t *packet;
     uint8_t *end_of_packet;
     uint8_t val;
@@ -63,8 +116,11 @@ void dhcp_get_lease(void) {
     packet->bootp.htype = BOOTP_HTYPE_ETHERNET;
     packet->bootp.hlen = BOOTP_HLEN_ETHERNET;
 
-    //    memcpy(&packet->bootp.ciaddr, &myip, 4);
-    packet->bootp.ciaddr = htonl(0);
+    if(msg_type == DHCP_MSG_DHCPDISCOVER) {
+        packet->bootp.ciaddr = htonl(0);
+    } else {
+        memcpy(&packet->bootp.ciaddr, &myip, 4);
+    }
     packet->bootp.yiaddr = htonl(0);
     packet->bootp.siaddr = htonl(0);
     packet->bootp.giaddr = htonl(0);
@@ -73,7 +129,7 @@ void dhcp_get_lease(void) {
     packet->bootp.flags = htons(1);
     packet->cookie = 0x63538263;
 
-    val = DHCP_MSG_DHCPDISCOVER;
+    val = msg_type;
     end_of_packet = dhcp_set_option(packet->options, DHCP_OPT_DHCPMSGTYPE, 1, &val);
     end_of_packet = dhcp_set_option(end_of_packet, DHCP_OPT_END, 0, NULL);
 
@@ -84,23 +140,25 @@ void dhcp_get_lease(void) {
  * tick off the dhcp wait timer
  */
 void dhcp_tick_seconds(void) {
-    if(dhcp_sec_to_refresh || dhcp_min_to_refresh) {
-        if(dhcp_sec_to_refresh) {
-            dhcp_sec_to_refresh--;
-        } else {
-            dhcp_sec_to_refresh=59;
-            dhcp_min_to_refresh--;
+    if(!dhcp_sec_to_refresh)
+        return;
+
+    dhcp_sec_to_refresh--;
+
+    if(!dhcp_sec_to_refresh) {
+        switch(dhcp_state) {
+        case DHCP_STATE_RENEW:
+            dhcp_error_count++;
+            dhcp_renew_lease();
+            break;
+        case DHCP_STATE_DISCOVER:
+            dhcp_error_count++;
+            dhcp_get_lease();
+            break;
+        default:
+            break;
         }
     }
-}
-
-/*
- * this is valid only on startup.  During a
- * renewal, this could be false, even when we have
- * a valid DHCP address
- */
-int dhcp_has_address(void) {
-    return dhcp_state == DHCP_STATE_ACQUIRED;
 }
 
 uint8_t *dhcp_set_option(uint8_t* options, uint8_t optcode,
