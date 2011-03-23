@@ -16,6 +16,8 @@ typedef struct eth_addr_t {
 
 #define ETH_ADDR_BCAST  (eth_addr_t*)"\xff\xff\xff\xff\xff\xff"
 
+#define ETH_HDR(packet) ((eth_header_t*)((uint8_t*)(packet)))
+
 typedef struct eth_header_t {
     eth_addr_t dst_addr;
     eth_addr_t src_addr;

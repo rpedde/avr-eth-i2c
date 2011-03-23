@@ -46,8 +46,6 @@ void dhcp_init(void) {
 int dhcp_process_packet(uint8_t *buffer, uint16_t len) {
     dhcp_t *header;
 
-    dprintf("Checking for DHCP type");
-
     if((((eth_header_t*)buffer)->eth_type == htons(ETH_TYPE_IP)) &&
        (((ip_header_t*)&buffer[ETH_HEADER_LEN])->ip_p == IP_PROTO_UDP) &&
        (((udp_header_t*)&buffer[ETH_HEADER_LEN + IP_HEADER_LEN])->uh_dport == htons(DHCP_UDP_CLIENT_PORT)))  {

@@ -8,6 +8,7 @@
 #include "avr_compat.h"
 #include "net.h"
 #include "dhcp.h"
+#include "icmp.h"
 #include "main.h"
 
 // please modify the following two lines. mac and ip have to be unique
@@ -27,6 +28,12 @@ int main(void){
         // get the next new packet:
         if((plen = enc28j60PacketReceive(BUFFER_SIZE, buf))) {
             if(dhcp_process_packet(buf, plen))
+                continue;
+
+            if(arp_process_packet(buf, plen))
+                continue;
+
+            if(icmp_process_packet(buf, plen))
                 continue;
         }
     }
