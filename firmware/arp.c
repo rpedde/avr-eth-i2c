@@ -5,6 +5,7 @@
 #include <stdint.h>
 #include <string.h>
 #include "main.h"
+#include "rnet.h"
 #include "eth.h"
 #include "ip.h"
 #include "arp.h"

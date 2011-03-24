@@ -20,6 +20,7 @@ typedef struct udp_header_t {
         udp_pack_p->uh_sum = 0;                                 \
     } while (0)
 
+#define UDP_HDR(packet) ((udp_header_t*)(((uint8_t*)(packet)) + ETH_HEADER_LEN + IP_HEADER_LEN))
 
 extern void udp_send_packet(uint8_t *buffer, uint16_t payload_length);
 

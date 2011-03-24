@@ -92,6 +92,7 @@ typedef struct dhcp_t {
 #define DHCP_MSG_DHCPRELEASE     7   ///< RELEASE is sent by client to server to relinquish DHCP lease on IP address, etc.
 #define DHCP_MSG_DHCPINFORM      8   ///< INFORM is sent by client to server to request config info, IP address configured locally.
 
+extern void dhcp_init(void);
 extern void dhcp_tick_seconds(void);
 extern int dhcp_process_packet(uint8_t *buffer, uint16_t len);
 

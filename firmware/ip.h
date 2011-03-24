@@ -81,8 +81,7 @@ typedef struct ip_header_t {
 #define IP_ADDR_MCAST_ALL       (htonl(0xe0000001))     /* 224.0.0.1 */
 #define IP_ADDR_MCAST_LOCAL     (htonl(0xe00000ff))     /* 224.0.0.255 */
 
-#define IP_HDR(packet) ((ip_header_t *)(((uint8_t*)(packet))            \
-                                        + ETH_HEADER_LEN + IP_HEADER_LEN))
+#define IP_HDR(packet) ((ip_header_t *)(((uint8_t*)(packet)) + ETH_HEADER_LEN))
 
 /* /\* this shouldn't be a macro *\/ */
 /* #define ip_pack_hdr(hdr, tos, len, id, off, ttl, p, src, dst) do {      \ */

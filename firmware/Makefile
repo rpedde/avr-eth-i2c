@@ -16,7 +16,7 @@ FUSE_H  = 0xd6   # 0xd6 to save eeprom, 0xde to not save eeprom
 AVRDUDE = avrdude -F -c avrisp2 -P usb -p $(DEVICE) # edit this line for your programmer
 
 CFLAGS  = -I/usr/local/include -I. -DDEBUG_LEVEL=0 -I$(shell cd ${AVRLIB}; pwd)
-OBJECTS = enc28j60.o ip_arp_udp.o main.o timeout.o rnet.o dhcp.o udp.o eth.o ip.o
+OBJECTS = enc28j60.o main.o timeout.o rnet.o dhcp.o udp.o eth.o ip.o arp.o icmp.o
 
 COMPILE = avr-gcc -Wall -Os -DDEVICE="$(DEVICE)" -DF_CPU=$(F_CPU) $(CFLAGS) -mmcu=$(DEVICE)
 

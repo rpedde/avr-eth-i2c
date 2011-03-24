@@ -15,8 +15,8 @@ extern ip_addr_t rnet_ipaddr;
 
 extern uint16_t htons(uint16_t);
 extern uint32_t htonl(uint32_t);
-#define ntohs htons
-#define ntohl htonl
+#define ntohs(s) htons(s)
+#define ntohl(l) htonl(l)
 
 extern int rnet_init(eth_addr_t *hwaddr, ip_addr_t ipaddr, ip_addr_t netmask);
 extern int rnet_set_gw(ip_addr_t ipaddr);
@@ -27,6 +27,6 @@ extern int rnet_set_gw(ip_addr_t ipaddr);
 #define CHECKSUM_TYPE_TCP   2
 
 extern uint16_t internet_checksum(uint8_t *buf, uint16_t len, uint8_t type);
-
+extern void enc28j60PacketSend(uint16_t len, uint8_t* packet);
 
 #endif /* _RNET_H_ */

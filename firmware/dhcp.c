@@ -57,7 +57,8 @@ int dhcp_process_packet(uint8_t *buffer, uint16_t len) {
                                   UDP_HEADER_LEN];
         if(header->bootp.xid == *(uint32_t*)&mymac) {
             /* yup, this was my transaction */
-            if(dhcp_state == DHCP_STATE_DISCOVER || dhcp_state == DHCP_STATE_RENEW) {
+            if((dhcp_state == DHCP_STATE_DISCOVER || dhcp_state == DHCP_STATE_RENEW) &&
+               header->bootp.op == BOOTP_OP_BOOTREPLY) {
                 memcpy(&dhcp_offer_ip, &header->bootp.yiaddr, sizeof(dhcp_offer_ip));
                 dprintf("Got DHCPOFFER");
                 memcpy(&dhcp_server_ip, &header->bootp.siaddr, sizeof(dhcp_server_ip));
@@ -73,7 +74,7 @@ int dhcp_process_packet(uint8_t *buffer, uint16_t len) {
                         myip[0], myip[1], myip[2], myip[3]);
                 /* need to pull out the lease duration */
 
-                dhcp_sec_to_expire = 60;
+                dhcp_sec_to_expire = 1200;
                 dhcp_sec_to_refresh = dhcp_sec_to_expire >> 1;
             }
         }

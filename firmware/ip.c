@@ -15,7 +15,7 @@ void ip_pack_hdr(uint8_t *packet, uint8_t tos, uint16_t len, uint16_t id,
                  uint16_t off, uint8_t ttl, uint8_t p, ip_addr_t src,
                  ip_addr_t dst) {
     IP_HDR(packet)->ip_v = 4;
-    IP_HDR(packet)->ip_hl = 4;
+    IP_HDR(packet)->ip_hl = 5;
     IP_HDR(packet)->ip_tos = tos;
     IP_HDR(packet)->ip_len = htons(len);
     IP_HDR(packet)->ip_id = htons(id);
