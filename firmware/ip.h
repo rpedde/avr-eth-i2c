@@ -96,7 +96,7 @@ typedef struct ip_header_t {
 /*     } while (0) */
 
 extern void ip_pack_hdr(uint8_t *packet, uint8_t tos, uint16_t len, uint16_t id,
-                        uint16_t off, uint8_t ttl, uint8_t p, ip_addr_t *src,
-                        ip_addr_t *dst);
+                        uint16_t off, uint8_t ttl, uint8_t p, ip_addr_t src,
+                        ip_addr_t dst);
 extern void ip_reply_hdr(uint8_t *packet);
 #endif /* _IP_H_ */

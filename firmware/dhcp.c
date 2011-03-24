@@ -117,10 +117,10 @@ void dhcp_send_packet(uint8_t msg_type) {
                                   IP_HEADER_LEN +
                                   UDP_HEADER_LEN];
 
-    eth_pack_hdr(&buf, ETH_ADDR_BCAST, (eth_addr_t*)&mymac, ETH_TYPE_IP);
+    eth_pack_hdr(buf, ETH_ADDR_BCAST, (eth_addr_t*)&mymac, ETH_TYPE_IP);
 
     /* now need an IP header */
-    ip_pack_hdr(&buf, IP_TOS_DEFAULT, 0, 0, IP_DF,
+    ip_pack_hdr(buf, IP_TOS_DEFAULT, 0, 0, IP_DF,
                 IP_TTL_DEFAULT, IP_PROTO_UDP, IP_ADDR_ANY,
                 IP_ADDR_BROADCAST);
 

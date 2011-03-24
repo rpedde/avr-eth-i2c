@@ -136,7 +136,7 @@ int main(void){
                         // a ping packet, let's send pong
                         make_echo_reply_from_request(buf,plen);
                         delay_ms(20);
-                        dhcp_get_lease();
+                        //                        dhcp_get_lease();
                         continue;
                 }
 
