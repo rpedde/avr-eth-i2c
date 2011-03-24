@@ -22,7 +22,7 @@ int main(void){
     uint16_t plen;
     uint8_t i=0;
 
-    dhcp_get_lease();
+    dhcp_init();
 
     while(1) {
         // get the next new packet:
@@ -35,6 +35,8 @@ int main(void){
 
             if(icmp_process_packet(buf, plen))
                 continue;
+        } else {
+            dhcp_tick_seconds();
         }
     }
     return (0);

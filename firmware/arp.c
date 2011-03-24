@@ -13,7 +13,10 @@ int arp_process_packet(uint8_t *buffer, uint16_t len) {
     if(ETH_HDR(buffer)->eth_type == htons(ETH_TYPE_ARP)) {
         if((ARP_HDR(buffer)->ar_op == htons(ARP_OP_REQUEST)) &&
            (memcmp(ARP_HDR(buffer)->ar_tpa, myip, IP_ADDR_LEN) == 0)) {
-            dprintf("Got arp request");
+            dprintf("Replying to ARP request from %d.%d.%d.%d",
+                    ARP_HDR(buffer)->ar_spa[0], ARP_HDR(buffer)->ar_spa[1],
+                    ARP_HDR(buffer)->ar_spa[2], ARP_HDR(buffer)->ar_spa[3]);
+
             /* we'll in-place this */
             memcpy(&ETH_HDR(buffer)->dst_addr,
                    &ETH_HDR(buffer)->src_addr,

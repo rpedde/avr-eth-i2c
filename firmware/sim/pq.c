@@ -148,10 +148,23 @@ int pq_fetch(char **packet, int *len) {
 void pq_exit(void) {
 }
 
-void pq_packet_wait(void) {
+int pq_packet_wait(void) {
+    struct timespec abstime;
+    struct timeval tv;
+    int err = 0;
+
     pthread_mutex_lock(&pq_list_lock);
-    while(pq_list.next == NULL) {
-        pthread_cond_wait(&pq_list_notify, &pq_list_lock);
+
+    gettimeofday(&tv, NULL);
+    abstime.tv_sec = tv.tv_sec + 1;
+    abstime.tv_nsec = tv.tv_usec * 1000;
+
+    while(pq_list.next == NULL && err == 0) {
+        err = pthread_cond_timedwait(&pq_list_notify, &pq_list_lock, &abstime);
     }
     pthread_mutex_unlock(&pq_list_lock);
+
+    if(err == 0)
+        return 1;
+    return 0;
 }

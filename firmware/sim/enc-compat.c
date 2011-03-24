@@ -42,17 +42,16 @@ uint16_t enc28j60PacketReceive(uint16_t maxlen, uint8_t* packet) {
     /* if(!pq_packet_available()) */
     /*     return 0; */
 
-    pq_packet_wait();
+    if(pq_packet_wait()) {
+        pq_fetch(&new_packet, &len);
 
-    pq_fetch(&new_packet, &len);
+        returned_length = len < maxlen ? len : maxlen;
+        memcpy(packet, new_packet, returned_length);
 
-    returned_length = len < maxlen ? len : maxlen;
+        free(new_packet);
+        return returned_length;
+    }
 
-    fprintf(stderr, "Got packet of length %d\n", returned_length);
-
-    memcpy(packet, new_packet, returned_length);
-
-    free(new_packet);
-    return returned_length;
+    return 0;
 }
 

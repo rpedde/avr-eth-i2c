@@ -23,12 +23,14 @@ static uint16_t dhcp_sec_to_refresh;
 static uint8_t dhcp_state;
 static uint8_t dhcp_error_count;
 static ip_addr_t dhcp_server_ip;
+static ip_addr_t dhcp_offer_ip;
 
 /* Forwards */
 uint8_t *dhcp_set_option(uint8_t* options, uint8_t optcode,
                          uint8_t optlen, void* optvalptr);
 
 void dhcp_send_packet(uint8_t msg_type);
+void dhcp_get_lease(void);
 
 /*
  * Initialize the dhcp subsystem
@@ -49,29 +51,32 @@ int dhcp_process_packet(uint8_t *buffer, uint16_t len) {
     if((((eth_header_t*)buffer)->eth_type == htons(ETH_TYPE_IP)) &&
        (((ip_header_t*)&buffer[ETH_HEADER_LEN])->ip_p == IP_PROTO_UDP) &&
        (((udp_header_t*)&buffer[ETH_HEADER_LEN + IP_HEADER_LEN])->uh_dport == htons(DHCP_UDP_CLIENT_PORT)))  {
-        dprintf("Received DHCP packet");
 
         /* looks like it might be a dhcp packet for us! */
         header = (dhcp_t*)&buffer[ETH_HEADER_LEN + IP_HEADER_LEN +
                                   UDP_HEADER_LEN];
         if(header->bootp.xid == *(uint32_t*)&mymac) {
             /* yup, this was my transaction */
-            if(dhcp_state == DHCP_STATE_DISCOVER) {
-                memcpy(myip, &header->bootp.yiaddr, sizeof(myip));
-                dprintf("Got offer for %d.%d.%d.%d", myip[0], myip[1],
-                        myip[2], myip[3]);
-
+            if(dhcp_state == DHCP_STATE_DISCOVER || dhcp_state == DHCP_STATE_RENEW) {
+                memcpy(&dhcp_offer_ip, &header->bootp.yiaddr, sizeof(dhcp_offer_ip));
+                dprintf("Got DHCPOFFER");
                 memcpy(&dhcp_server_ip, &header->bootp.siaddr, sizeof(dhcp_server_ip));
+                dprintf("Sending DHCPREQUEST (lease)");
                 dhcp_send_packet(DHCP_MSG_DHCPREQUEST);
 
                 dhcp_state = DHCP_STATE_ACK;
                 dhcp_sec_to_refresh = 10;
             } else if (dhcp_state == DHCP_STATE_ACK) {
                 dhcp_state = DHCP_STATE_ACQUIRED;
-                dprintf("ACK received... DHCP running...");
+                memcpy(&myip, &dhcp_offer_ip, sizeof(dhcp_offer_ip));
+                dprintf("Got DHCPACK, IP initialized with %d.%d.%d.%d",
+                        myip[0], myip[1], myip[2], myip[3]);
+                /* need to pull out the lease duration */
+
+                dhcp_sec_to_expire = 60;
+                dhcp_sec_to_refresh = dhcp_sec_to_expire >> 1;
             }
         }
-
     }
 
     return 0;
@@ -82,8 +87,9 @@ int dhcp_process_packet(uint8_t *buffer, uint16_t len) {
  * and wait for ACK or NAK
  */
 void dhcp_renew_lease(void) {
-    dhcp_send_packet(DHCP_MSG_DHCPREQUEST);
+    dprintf("Sending DHCP REQUEST (renew)");
     dhcp_state = DHCP_STATE_RENEW;
+    dhcp_send_packet(DHCP_MSG_DHCPREQUEST);
     dhcp_sec_to_refresh = 10;
 }
 
@@ -91,6 +97,7 @@ void dhcp_renew_lease(void) {
  * get a full DHCP lease (from cold boot)
  */
 void dhcp_get_lease(void) {
+    dprintf("Sending DHCP DISCOVER");
     dhcp_send_packet(DHCP_MSG_DHCPDISCOVER);
     dhcp_state = DHCP_STATE_DISCOVER;
     dhcp_sec_to_refresh = 10;
@@ -127,11 +134,16 @@ void dhcp_send_packet(uint8_t msg_type) {
     packet->bootp.htype = BOOTP_HTYPE_ETHERNET;
     packet->bootp.hlen = BOOTP_HLEN_ETHERNET;
 
-    packet->bootp.ciaddr = htonl(0);
+
+    if(dhcp_state == DHCP_STATE_RENEW) {
+        memcpy(&packet->bootp.ciaddr, myip, sizeof(myip));
+    } else {
+        packet->bootp.ciaddr = htonl(0);
+    }
     packet->bootp.yiaddr = htonl(0);
     packet->bootp.siaddr = htonl(0);
-
     packet->bootp.giaddr = htonl(0);
+
     memcpy(packet->bootp.chaddr, mymac, 6);
     packet->bootp.xid = *(uint32_t*)&mymac;
     packet->bootp.flags = htons(1);
@@ -140,8 +152,8 @@ void dhcp_send_packet(uint8_t msg_type) {
     val = msg_type;
     end_of_packet = dhcp_set_option(packet->options, DHCP_OPT_DHCPMSGTYPE, 1, &val);
 
-    if(dhcp_state == DHCP_STATE_DISCOVER) {  /* we are REQUESTING after an OFFER */
-        end_of_packet = dhcp_set_option(end_of_packet, DHCP_OPT_REQUESTEDIP, 4, &myip);
+    if(dhcp_state == DHCP_STATE_DISCOVER || dhcp_state == DHCP_STATE_RENEW) {  /* we are REQUESTING after an OFFER */
+        end_of_packet = dhcp_set_option(end_of_packet, DHCP_OPT_REQUESTEDIP, 4, &dhcp_offer_ip);
         end_of_packet = dhcp_set_option(end_of_packet, DHCP_OPT_SERVERID, 4, &dhcp_server_ip);
     }
 
@@ -156,10 +168,17 @@ void dhcp_tick_seconds(void) {
     if(!dhcp_sec_to_refresh)
         return;
 
+    if(!dhcp_sec_to_expire) {
+        /* our lease is up... force a full recycle */
+        dhcp_init();
+        return;
+    }
+
     dhcp_sec_to_refresh--;
 
     if(!dhcp_sec_to_refresh) {
         switch(dhcp_state) {
+        case DHCP_STATE_ACQUIRED:
         case DHCP_STATE_RENEW:
             dhcp_error_count++;
             dhcp_renew_lease();
