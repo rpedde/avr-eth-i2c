@@ -24,6 +24,7 @@ typedef struct eth_header_t {
     uint16_t eth_type;
 } eth_header_t;
 
-extern void eth_pack_hdr(eth_header_t *packet, eth_addr_t *dst, eth_addr_t *src, uint16_t type);
+extern void eth_pack_hdr(uint8_t *packet, eth_addr_t *dst, eth_addr_t *src, uint16_t type);
+extern void eth_reply_hdr(uint8_t *packet);
 
 #endif /* _ETH_H_ */

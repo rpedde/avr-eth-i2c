@@ -84,15 +84,19 @@ typedef struct ip_header_t {
 #define IP_HDR(packet) ((ip_header_t *)(((uint8_t*)(packet))            \
                                         + ETH_HEADER_LEN + IP_HEADER_LEN))
 
-/* this shouldn't be a macro */
-#define ip_pack_hdr(hdr, tos, len, id, off, ttl, p, src, dst) do {      \
-        ip_header_t *ip_pack_p = (ip_header_t *)(hdr);                  \
-        ip_pack_p->ip_v = 4; ip_pack_p->ip_hl = 5;                      \
-        ip_pack_p->ip_tos = tos; ip_pack_p->ip_len = htons(len);        \
-        ip_pack_p->ip_id = htons(id); ip_pack_p->ip_off = htons(off);   \
-        ip_pack_p->ip_ttl = ttl; ip_pack_p->ip_p = p;                   \
-        ip_pack_p->ip_src = src; ip_pack_p->ip_dst = dst;               \
-        ip_pack_p->ip_sum = 0;                                          \
-    } while (0)
+/* /\* this shouldn't be a macro *\/ */
+/* #define ip_pack_hdr(hdr, tos, len, id, off, ttl, p, src, dst) do {      \ */
+/*         ip_header_t *ip_pack_p = (ip_header_t *)(hdr);                  \ */
+/*         ip_pack_p->ip_v = 4; ip_pack_p->ip_hl = 5;                      \ */
+/*         ip_pack_p->ip_tos = tos; ip_pack_p->ip_len = htons(len);        \ */
+/*         ip_pack_p->ip_id = htons(id); ip_pack_p->ip_off = htons(off);   \ */
+/*         ip_pack_p->ip_ttl = ttl; ip_pack_p->ip_p = p;                   \ */
+/*         ip_pack_p->ip_src = src; ip_pack_p->ip_dst = dst;               \ */
+/*         ip_pack_p->ip_sum = 0;                                          \ */
+/*     } while (0) */
 
+extern void ip_pack_hdr(uint8_t *packet, uint8_t tos, uint16_t len, uint16_t id,
+                        uint16_t off, uint8_t ttl, uint8_t p, ip_addr_t *src,
+                        ip_addr_t *dst);
+extern void ip_reply_hdr(uint8_t *packet);
 #endif /* _IP_H_ */

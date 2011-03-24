@@ -15,6 +15,8 @@ extern ip_addr_t rnet_ipaddr;
 
 extern uint16_t htons(uint16_t);
 extern uint32_t htonl(uint32_t);
+#define ntohs htons
+#define ntohl htonl
 
 extern int rnet_init(eth_addr_t *hwaddr, ip_addr_t ipaddr, ip_addr_t netmask);
 extern int rnet_set_gw(ip_addr_t ipaddr);
