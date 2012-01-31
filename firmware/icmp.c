@@ -13,7 +13,7 @@ int icmp_process_packet(uint8_t *buffer, uint16_t len) {
        (ICMP_HDR(buffer)->icmp_type == ICMP_ECHO) &&
        (memcmp(&IP_HDR(buffer)->ip_dst, &myip, sizeof(ip_addr_t)) == 0)) {
         /* we have an echo request */
-        dprintf("ICMP echo request");
+        xprintf("ICMP echo request");
 
         eth_reply_hdr(buffer);
         ip_reply_hdr(buffer);

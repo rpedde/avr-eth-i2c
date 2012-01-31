@@ -8,7 +8,7 @@ extern uint8_t myip[4];
 extern uint8_t buf[BUFFER_SIZE + 1];
 
 #ifndef DEBUG
-#define dprintf(...)
+#define xprintf(...)
 #endif
 
 #endif /* _MAIN_H_ */

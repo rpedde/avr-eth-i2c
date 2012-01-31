@@ -2,7 +2,7 @@
 #include <string.h>
 #include <inttypes.h>
 
-#include "ip_arp_udp.h"
+/* #include "ip_arp_udp.h" */
 #include "enc28j60.h"
 #include "timeout.h"
 #include "avr_compat.h"

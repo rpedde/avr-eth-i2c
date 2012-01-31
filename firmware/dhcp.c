@@ -60,9 +60,9 @@ int dhcp_process_packet(uint8_t *buffer, uint16_t len) {
             if((dhcp_state == DHCP_STATE_DISCOVER || dhcp_state == DHCP_STATE_RENEW) &&
                header->bootp.op == BOOTP_OP_BOOTREPLY) {
                 memcpy(&dhcp_offer_ip, &header->bootp.yiaddr, sizeof(dhcp_offer_ip));
-                dprintf("Got DHCPOFFER");
+                xprintf("Got DHCPOFFER");
                 memcpy(&dhcp_server_ip, &header->bootp.siaddr, sizeof(dhcp_server_ip));
-                dprintf("Sending DHCPREQUEST (lease)");
+                xprintf("Sending DHCPREQUEST (lease)");
                 dhcp_send_packet(DHCP_MSG_DHCPREQUEST);
 
                 dhcp_state = DHCP_STATE_ACK;
@@ -70,7 +70,7 @@ int dhcp_process_packet(uint8_t *buffer, uint16_t len) {
             } else if (dhcp_state == DHCP_STATE_ACK) {
                 dhcp_state = DHCP_STATE_ACQUIRED;
                 memcpy(&myip, &dhcp_offer_ip, sizeof(dhcp_offer_ip));
-                dprintf("Got DHCPACK, IP initialized with %d.%d.%d.%d",
+                xprintf("Got DHCPACK, IP initialized with %d.%d.%d.%d",
                         myip[0], myip[1], myip[2], myip[3]);
                 /* need to pull out the lease duration */
 
@@ -88,7 +88,7 @@ int dhcp_process_packet(uint8_t *buffer, uint16_t len) {
  * and wait for ACK or NAK
  */
 void dhcp_renew_lease(void) {
-    dprintf("Sending DHCP REQUEST (renew)");
+    xprintf("Sending DHCP REQUEST (renew)");
     dhcp_state = DHCP_STATE_RENEW;
     dhcp_send_packet(DHCP_MSG_DHCPREQUEST);
     dhcp_sec_to_refresh = 10;
@@ -98,7 +98,7 @@ void dhcp_renew_lease(void) {
  * get a full DHCP lease (from cold boot)
  */
 void dhcp_get_lease(void) {
-    dprintf("Sending DHCP DISCOVER");
+    xprintf("Sending DHCP DISCOVER");
     dhcp_send_packet(DHCP_MSG_DHCPDISCOVER);
     dhcp_state = DHCP_STATE_DISCOVER;
     dhcp_sec_to_refresh = 10;

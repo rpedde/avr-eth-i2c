@@ -64,7 +64,7 @@ void hex_dump(void *data, int size) {
     }
 }
 
-void dprintf(char *fmt, ...) {
+void xprintf(char *fmt, ...) {
     va_list args;
     char *stringp;
 
